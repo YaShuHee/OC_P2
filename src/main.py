@@ -7,8 +7,10 @@ import requests
 from bs4 import BeautifulSoup
 
 import os
+
 cwd = os.getcwd()
-results_dir_name = "scraping_results"
+results_dir = "scraping_results"
+
 
 def get_soup(url):
     """
@@ -26,25 +28,29 @@ def get_soup(url):
 def get_links(soup):
     """
     Returns all the <a> elements from a soup.
-    Result is calculated only once for each 'soup' argument given thanks to @cache decorator.
+    Result is calculated only once for each 'soup' argument given (@cache).
     """
     return soup.find_all("a")
 
 
 def get_categories(soup):
     """
-    Returns a dict containing categories of books as keys and their relative url as values.
+    Returns a dict containing categories of books as keys and their relative
+    url as values.
     """
     links = get_links(soup)
     return {
-        link.contents[0].strip(): "https://books.toscrape.com/" + link['href'].replace("index.html", "")
-        for link in links if "category/books/" in link["href"]
+        link.contents[0].strip(): "https://books.toscrape.com/"
+        + link["href"].replace("index.html", "")
+        for link in links
+        if "category/books/" in link["href"]
     }
 
 
 def get_books_infos_from_category(category, category_url):
     """
-    Returns a list of all the books and their infos from one category, using its url.
+    Returns a list of all the books and their infos from one category, using
+    its url.
     """
     page = 1
     books = []
@@ -72,7 +78,11 @@ def get_books_url_from_page(soup):
     TODO: Coding it.
     """
     imgs = soup.find_all("img")
-    urls = ["https://books.toscrape.com/catalogue/" + img.parent["href"].replace("../", "") for img in imgs]
+    urls = [
+        "https://books.toscrape.com/catalogue/"
+        + img.parent["href"].replace("../", "")
+        for img in imgs
+    ]
     return urls
 
 
@@ -81,22 +91,22 @@ def scrap_book_informations_table(soup):
     Returns the infos in the "Product Information" table, in a dict.
     """
     table_rows = soup.find_all("tr")
-    infos = {
-        row.th.text: row.td.text
-        for row in table_rows
-    }
+    infos = {row.th.text: row.td.text for row in table_rows}
     return infos
 
 
 def clean_up_book_informations_table(infos):
     """
-    Changes the keys in the dict reported by the function 'scrap_book_informations_table(soup)'.
+    Changes the keys in the dict reported
+    by the function 'scrap_book_informations_table(soup)'.
     """
     cleaned_up_infos = {
         "universal_product_code": infos["UPC"],
         "price_including_tax": infos["Price (incl. tax)"][2:],
         "price_excluding_tax": infos["Price (excl. tax)"][2:],
-        "number_available": infos["Availability"].replace("In stock (", "").replace(" available)", "")
+        "number_available": infos["Availability"]
+        .replace("In stock (", "")
+        .replace(" available)", ""),
     }
     return cleaned_up_infos
 
@@ -106,10 +116,16 @@ def scrap_book_description(soup):
     Returns the book description in a dict.
     """
     try:
-        description = soup.find("div", {"id": "product_description"}).find_next_sibling("p").text
-    except:
+        description = (
+            soup.find("div", {"id": "product_description"})
+            .find_next_sibling("p")
+            .text
+        )
+    except AttributeError:
         description = "Pas de description."
-        print(f"<!> Pas de description : {scrap_book_title(soup)['title']} <!>")
+        print(
+            f"<!> Pas de description : {scrap_book_title(soup)['title']} <!>"
+        )
     return {"product_description": description}
 
 
@@ -121,20 +137,18 @@ def scrap_book_title(soup):
 
 
 def number_word_to_number_digits(word):
-    return {
-        "One": "1",
-        "Two": "2",
-        "Three": "3",
-        "Four": "4",
-        "Five": "5"
-    }[word]
+    return {"One": "1", "Two": "2", "Three": "3", "Four": "4", "Five": "5"}[
+        word
+    ]
 
 
 def scrap_book_review_rating(soup):
     """
     Returns the book review rating in a dict.
     """
-    stars = soup.find("div", class_="product_main").find("p", class_="star-rating")["class"][1]
+    stars = soup.find("div", class_="product_main").find(
+        "p", class_="star-rating"
+    )["class"][1]
     return {"review_rating": number_word_to_number_digits(stars)}
 
 
@@ -142,7 +156,9 @@ def scrap_book_image_url(soup):
     """
     Returns the book image url in a dict.
     """
-    image_url = "https://books.toscrape.com/catalogue/" + soup.find("article", class_="product_page").find("img")["src"].replace("../", "")
+    image_url = "https://books.toscrape.com/catalogue/" + soup.find(
+        "article", class_="product_page"
+    ).find("img")["src"].replace("../", "")
     return {"image_url": image_url}
 
 
@@ -153,7 +169,9 @@ def get_book_infos(category, url):
     """
     infos = {"category": category, "product_page_url": url}
     soup = get_soup(url)
-    table_infos = clean_up_book_informations_table(scrap_book_informations_table(soup))
+    table_infos = clean_up_book_informations_table(
+        scrap_book_informations_table(soup)
+    )
     description_dict = scrap_book_description(soup)
     title_dict = scrap_book_title(soup)
     image_dict = scrap_book_image_url(soup)
@@ -165,7 +183,7 @@ def get_book_infos(category, url):
         **description_dict,
         **title_dict,
         **rating_dict,
-        **image_dict
+        **image_dict,
     }
 
     print(f" - {infos['title']}")
@@ -173,19 +191,22 @@ def get_book_infos(category, url):
 
 
 def generate_csv(category_name, books, separator=";"):
-    with open(f"{cwd}{os.sep}book_scraping_results_OC_P2{os.sep}{results_dir_name}.csv", "w") as file:
+    with open(
+        f"{cwd}{os.sep}{results_dir}{os.sep}{category_name}.csv",
+        "w",
+    ) as file:
         to_write = ""
-        columns =(
-                "product_page_url",
-                "universal_product_code",
-                "title",
-                "price_including_tax",
-                "price_excluding_tax",
-                "number_available",
-                "product_description",
-                "category",
-                "review_rating",
-                "image_url"
+        columns = (
+            "product_page_url",
+            "universal_product_code",
+            "title",
+            "price_including_tax",
+            "price_excluding_tax",
+            "number_available",
+            "product_description",
+            "category",
+            "review_rating",
+            "image_url",
         )
         for column in columns:
             to_write += f"{column}{separator}"
@@ -205,22 +226,32 @@ def generate_csv(category_name, books, separator=";"):
 def main():
 
     try:
-        os.mkdir(results_dir_name)
+        os.mkdir(results_dir)
     except FileExistsError:
         pass
 
+    books = {}
+
+    # """
+    # will scrap all categories (several minutes)
     soup = get_soup("https://books.toscrape.com/")
     categories = get_categories(soup)
-    books = {}
-    """
     for category_name, category_url in categories.items():
         # print(f"{counter}. {category_name}: {category_url}")
-        books[category_name] = get_books_infos_from_category(category_name, category_url)
+        books[category_name] = get_books_infos_from_category(
+            category_name, category_url
+        )
         generate_csv(category_name, books[category_name])
     """
-    books["Suspense"] = get_books_infos_from_category("Suspense", "https://books.toscrape.com/catalogue/category/books/suspense_44/")
+    # will scrap only one book (only one book in "Suspense" category)
+    books["Suspense"] = get_books_infos_from_category(
+        "Suspense",
+        "https://books.toscrape.com/catalogue/category/books/suspense_44/",
+    )
     generate_csv("Suspense", books["Suspense"])
+    #
+    """
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
