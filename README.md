@@ -1,10 +1,30 @@
-# \[EN\] [Books to scrap](http://books.toscrape.com) scraping project for the "Books Online" library.
-## The work is still in progress.
-The actual code is more a proof of concept than the production of the final code.
-It's also a pretext to train with Git.
+# \[EN\] [Books to scrap](http://books.toscrape.com) scraping project.
+## PoC
+The actual code was made quickly and needs a total refactor and the add of some more functionalities.
+
+## Incoming improvements
+The actual code needs :
+* total reorganisation on several files/modules,
+* code formatting,
+* paradigm or ONE "way" to code,
+* tests,
+* exceptions management,
+* encoding error correction,
+* receive arguments when running script from command (argparse) to chose what to scrap,
+* a better files and directory management.
 
 
-# \[FR\] Projet de scraping du site [Books to scrap](http://books.toscrape.com) pour la librairie "Books Online".
-## Le travail est toujours en cours.
-Le code actuel est plus une démonstration de faisabilité qu'une réelle production du code qui sera livré.
-C'est aussi un prétexte pour m'entraîner à utiliser Git.
+# \[FR\] Projet de scraping du site [Books to scrap](http://books.toscrape.com).
+## PoC
+Le code source actuel a été fait rapidement et a besoin d'être totalement repris ainsi que l'ajout de quelques fonctionnalités.
+
+## Améliorations à venir
+Le code actuel a besoin des améliorations suivantes :
+* une réorganisation totale du code en polusieurs fichiers/modules,
+* une mise en forme,
+* le choix d'un paradigme ou UNE "façon" de coder,
+* des tests,
+* une gestion des exceptions,
+* la correction des erreurs d'encodage,
+* pouvoir recevoir des arguments au lancement du script depuis la commande (argparse) pour choisir ce qu'on veut scraper,
+* une meilleure gestion des dossiers et fichiers.
